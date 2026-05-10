@@ -48,13 +48,44 @@
       </el-tag>
       <span class="file-size">{{ formatFileSize(currentFile.size) }}</span>
     </div>
+
+    <div v-if="store.importHistory.length > 0" class="history-section">
+      <div class="history-header">
+        <span class="history-title">
+          <el-icon><Clock /></el-icon>
+          最近导入记录
+        </span>
+        <el-button
+          link
+          type="danger"
+          size="small"
+          @click="handleClearHistory"
+        >
+          清空历史
+        </el-button>
+      </div>
+      <div class="history-list">
+        <div
+          v-for="(item, index) in store.importHistory"
+          :key="index"
+          class="history-item"
+          @click="$emit('select-history', item.fileName)"
+        >
+          <el-icon class="history-icon"><document /></el-icon>
+          <div class="history-content">
+            <span class="history-filename">{{ item.fileName }}</span>
+            <span class="history-time">{{ item.importTime }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { UploadFilled, Upload, Delete, Document } from '@element-plus/icons-vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { UploadFilled, Upload, Delete, Document, Clock } from '@element-plus/icons-vue'
 import type { UploadFile } from 'element-plus'
 import { readExcelFile } from '@/utils/excelUtils'
 import { useDataPreparationStore } from '@/stores/dataPreparation'
@@ -63,6 +94,10 @@ const store = useDataPreparationStore()
 const uploadRef = ref()
 const currentFile = ref<File | null>(null)
 const loading = ref(false)
+
+onMounted(() => {
+  store.initImportHistory()
+})
 
 /**
  * 文件选择变化
@@ -135,6 +170,22 @@ const formatFileSize = (bytes: number): string => {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
 }
+
+/**
+ * 清空导入历史记录
+ */
+const handleClearHistory = async () => {
+  try {
+    await ElMessageBox.confirm('确定要清空所有导入历史记录吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    store.clearImportHistoryList()
+    ElMessage.success('历史记录已清空')
+  } catch {
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -184,6 +235,77 @@ const formatFileSize = (bytes: number): string => {
     .file-size {
       color: #909399;
       font-size: 14px;
+    }
+  }
+
+  .history-section {
+    margin-top: 24px;
+    border-top: 1px solid #ebeef5;
+    padding-top: 16px;
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .history-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #303133;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background-color: #f5f7fa;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #ecf5ff;
+        }
+
+        .history-icon {
+          color: #409eff;
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+
+        .history-content {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          .history-filename {
+            font-size: 14px;
+            color: #303133;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .history-time {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 2px;
+          }
+        }
+      }
     }
   }
 }
