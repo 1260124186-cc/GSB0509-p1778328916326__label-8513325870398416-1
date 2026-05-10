@@ -2,8 +2,9 @@
  * 数据准备模块 Store
  */
 import { defineStore } from 'pinia'
-import type { DataPreparationState, TableRow, TableColumn, DataStatistics } from '@/types/dataPreparation'
+import type { DataPreparationState, TableRow, TableColumn, DataStatistics, ImportHistory } from '@/types/dataPreparation'
 import { analyzeDataTypes } from '@/utils/excelUtils'
+import { getImportHistory, addImportHistory, clearImportHistory } from '@/utils/storageUtils'
 
 export const useDataPreparationStore = defineStore('dataPreparation', {
   state: (): DataPreparationState => ({
@@ -11,7 +12,8 @@ export const useDataPreparationStore = defineStore('dataPreparation', {
     tableColumns: [],
     statistics: null,
     loading: false,
-    fileName: ''
+    fileName: '',
+    importHistory: []
   }),
 
   getters: {
@@ -38,12 +40,20 @@ export const useDataPreparationStore = defineStore('dataPreparation', {
 
   actions: {
     /**
+     * 初始化导入历史记录
+     */
+    initImportHistory() {
+      this.importHistory = getImportHistory()
+    },
+
+    /**
      * 设置表格数据和列配置
      */
     setTableData(data: TableRow[], columns: TableColumn[], fileName: string) {
       this.tableData = data
       this.tableColumns = columns
       this.fileName = fileName
+      this.importHistory = addImportHistory(fileName)
       this.updateStatistics()
     },
 
@@ -120,6 +130,14 @@ export const useDataPreparationStore = defineStore('dataPreparation', {
      */
     setLoading(loading: boolean) {
       this.loading = loading
+    },
+
+    /**
+     * 清空导入历史记录
+     */
+    clearImportHistoryList() {
+      clearImportHistory()
+      this.importHistory = []
     }
   }
 })
