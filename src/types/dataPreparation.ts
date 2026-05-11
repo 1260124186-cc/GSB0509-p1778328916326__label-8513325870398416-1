@@ -43,6 +43,14 @@ export interface ExcelImportConfig {
 }
 
 /**
+ * 导入历史记录项
+ */
+export interface ImportHistoryItem {
+  fileName: string          // 文件名
+  importTime: string        // 导入时间
+}
+
+/**
  * 数据准备模块状态
  */
 export interface DataPreparationState {
@@ -52,4 +60,3 @@ export interface DataPreparationState {
   loading: boolean                // 加载状态
   fileName: string                // 当前文件名
 }
-
